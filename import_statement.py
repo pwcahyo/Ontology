@@ -120,6 +120,7 @@ stance_type_df = pd.read_csv(STANCE_TYPE_FILE)
 print("Data berhasil dibaca:")
 print("News      :", len(news_df))
 print("Statement :", len(statement_df))
+print("Person :", len(person_df))
 print("Stance    :", len(stance_df))
 print("StanceType:", len(stance_type_df))
 
@@ -196,24 +197,29 @@ for _, row in news_df.iterrows():
 
     news = iri(row["idNews"])
 
+    # Membuat individual News
     triples.append(
         f"{news} rdf:type sch:News ."
     )
 
-    triples.append(
-        f"{news} sch:title "
-        f"{sparql_literal(row['title'])} ."
-    )
+    # Data properties News
+    if not pd.isna(row["title"]):
+        triples.append(
+            f"{news} sch:title "
+            f"{sparql_literal(row['title'])} ."
+        )
 
-    triples.append(
-        f"{news} sch:content "
-        f"{sparql_literal(row['content'])} ."
-    )
+    if not pd.isna(row["content"]):
+        triples.append(
+            f"{news} sch:content "
+            f"{sparql_literal(row['content'])} ."
+        )
 
-    triples.append(
-        f"{news} sch:author "
-        f"{sparql_literal(row['author'])} ."
-    )
+    if not pd.isna(row["author"]):
+        triples.append(
+            f"{news} sch:author "
+            f"{sparql_literal(row['author'])} ."
+        )
 
     published_at = datetime_literal(row["publishedAt"])
 
@@ -223,34 +229,43 @@ for _, row in news_df.iterrows():
         )
 
     if not pd.isna(row["sourceURL"]):
-
         source_url = str(row["sourceURL"]).strip()
 
         if source_url:
-
             triples.append(
-                f'{news} sch:sourceURL '
-                f'"{source_url}"^^xsd:anyURI .'
+                f"{news} sch:sourceURL "
+                f"{sparql_literal(source_url)} ."
             )
 
     # --------------------------------------------------------
-    # hasStatement
+    # hasStatement: setiap Statement menjadi IRI terpisah
     # --------------------------------------------------------
 
     if not pd.isna(row["hasStatement"]):
 
-        statements = str(row["hasStatement"]).split(",")
+        raw_statements = str(row["hasStatement"]).strip()
 
-        for statement_id in statements:
+        # Mengambil setiap ID Statement secara individual.
+        # Mendukung:
+        # Statement_000003,Statement_000004
+        # Statement_000003;Statement_000004
+        # Statement_000003_Statement_000004
+        statement_ids = re.findall(
+            r"Statement_\d+",
+            raw_statements
+        )
 
-            statement_id = statement_id.strip()
+        # Hapus duplikasi tanpa mengubah urutan
+        statement_ids = list(dict.fromkeys(statement_ids))
 
-            if statement_id:
+        for statement_id in statement_ids:
 
-                triples.append(
-                    f"{news} sch:hasStatement "
-                    f"{iri(statement_id)} ."
-                )
+            statement = iri(statement_id)
+
+            # Setiap Statement memiliki triple hasStatement sendiri
+            triples.append(
+                f"{news} sch:hasStatement {statement} ."
+            )
 
 # ============================================================
 # 4. PERSON
