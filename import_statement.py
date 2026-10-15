@@ -160,6 +160,10 @@ triples.append(
     f"sch:textStatement rdfs:domain sch:Statement ."
     f"sch:textStatement rdfs:range xsd:string ."
 
+    f"sch:topic rdf:type owl:DatatypeProperty ."
+    f"sch:topic rdfs:domain sch:Statement ."
+    f"sch:topic rdfs:range xsd:string ."
+
     f"sch:personName rdf:type owl:DatatypeProperty ."
     f"sch:personName rdfs:domain sch:Person ."
     f"sch:personName rdfs:range xsd:string ."
@@ -319,6 +323,14 @@ for _, row in statement_df.iterrows():
 
         triples.append(
             f"{statement} sch:textStatement "
+            f"{sparql_literal(row['textStatement'])} ."
+        )
+
+    # topic
+    if not pd.isna(row["topic"]):
+
+        triples.append(
+            f"{statement} sch:topic "
             f"{sparql_literal(row['textStatement'])} ."
         )
 
