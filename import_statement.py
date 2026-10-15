@@ -19,11 +19,11 @@ ONTOLOGY = "http://ugm.ac.id/ontology/political-ontology/data#"
 # FILE EXCEL
 # ============================================================
 
-NEWS_FILE = "News.xlsx"
-PERSON_FILE = "Person.xlsx"
-STATEMENT_FILE = "Statement.xlsx"
-STANCE_FILE = "Stance.xlsx"
-STANCE_TYPE_FILE = "StanceType.xlsx"
+NEWS_FILE = "News.csv"
+PERSON_FILE = "Person.csv"
+STATEMENT_FILE = "Statement.csv"
+STANCE_FILE = "Stance.csv"
+STANCE_TYPE_FILE = "StanceType.csv"
 
 
 # ============================================================
@@ -106,15 +106,15 @@ def datetime_literal(value):
 # MEMBACA EXCEL
 # ============================================================
 
-news_df = pd.read_excel(NEWS_FILE)
+news_df = pd.read_csv(NEWS_FILE)
 
-person_df = pd.read_excel(PERSON_FILE)
+person_df = pd.read_csv(PERSON_FILE)
 
-statement_df = pd.read_excel(STATEMENT_FILE)
+statement_df = pd.read_csv(STATEMENT_FILE)
 
-stance_df = pd.read_excel(STANCE_FILE)
+stance_df = pd.read_csv(STANCE_FILE)
 
-stance_type_df = pd.read_excel(STANCE_TYPE_FILE)
+stance_type_df = pd.read_csv(STANCE_TYPE_FILE)
 
 
 print("Data berhasil dibaca:")
@@ -182,6 +182,10 @@ triples.append(
     f"sch:sourceURL rdf:type owl:DatatypeProperty ."
     f"sch:sourceURL rdfs:domain sch:News ."
     f"sch:sourceURL rdfs:range xsd:anyURI ."
+
+    f"sch:stanceType rdf:type owl:DatatypeProperty ."
+    f"sch:stanceType rdfs:domain sch:StanceType ."
+    f"sch:stanceType rdfs:range xsd:string ."
 )
 
 # ============================================================
@@ -317,10 +321,10 @@ for _, row in statement_df.iterrows():
             f"{person} rdf:type sch:Person ."
         )
 
-    # expressStance
-    if not pd.isna(row["expressStance"]):
+    # expressesStance
+    if not pd.isna(row["expressesStance"]):
 
-        stance = iri(row["expressStance"])
+        stance = iri(row["expressesStance"])
 
         triples.append(
             f"{statement} sch:expressesStance "
@@ -360,6 +364,11 @@ for _, row in stance_type_df.iterrows():
 
     triples.append(
         f"{stance_type} rdf:type sch:StanceType ."
+    )
+
+    triples.append(
+        f"{stance_type} sch:stanceType "
+        f"{sparql_literal(row['stanceType'])} ."
     )
 
 # ============================================================
